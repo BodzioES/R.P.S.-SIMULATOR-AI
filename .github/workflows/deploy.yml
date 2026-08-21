@@ -13,11 +13,11 @@ jobs:
       - name: Deploy na VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.RPS_SIMULATOR_HOST }}
-          username: ${{ secrets.RPS_SIMULATOR_USERNAME }}
-          key: ${{ secrets.RPS_SIMULATOR_SSH_KEY }}
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /home/${{ secrets.RPS_SIMULATOR_USERNAME }}/rps-simulator
+            cd /home/${{ secrets.VPS_USERNAME }}/rps-simulator
 
             git pull origin main
 
