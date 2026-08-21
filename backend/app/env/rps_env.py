@@ -74,7 +74,6 @@ class RPSEnv:
             "populations": new_pop,
             "winning_type": self.winning_type,
             "conversions": conversions,
-            "observations": self.observations(),
         }
         return self.state(), rewards, self.done, info
 
