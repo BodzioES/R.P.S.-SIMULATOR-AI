@@ -24,6 +24,7 @@ class SimulationManager:
         self.env = RPSEnv(seed=seed)
         self.env.reset()
         self.policy = None
+        self.policy_name = "none"
         self.clients = set()
         self.running = False
         self.task = None

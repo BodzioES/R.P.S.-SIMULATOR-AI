@@ -3,26 +3,23 @@ name: Deploy RPS Simulator
 on:
   push:
     branches:
-      - main # Akcja uruchomi się automatycznie po wypchnięciu kodu na gałąź main
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Połączenie z serwerem i aktualizacja
+      - name: Deploy na VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.RPS_SIMULATOR_HOST }}
           username: ${{ secrets.RPS_SIMULATOR_USERNAME }}
           key: ${{ secrets.RPS_SIMULATOR_SSH_KEY }}
           script: |
-            # Przejście do katalogu z projektem (zmień ścieżkę na właściwą)
             cd /home/${{ secrets.RPS_SIMULATOR_USERNAME }}/rps-simulator
-            
-            # Pobranie najnowszych zmian z repozytorium
+
             git pull origin main
-            
-            # Zatrzymanie obecnych kontenerów, przebudowanie obrazów i uruchomienie nowych
+
             docker compose down
             docker compose up -d --build

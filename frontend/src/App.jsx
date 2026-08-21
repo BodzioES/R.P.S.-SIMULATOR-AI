@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Board from "./components/Board.jsx";
 import Controls from "./components/Controls.jsx";
 import PopulationChart from "./components/PopulationChart.jsx";
@@ -10,6 +11,17 @@ export default function App() {
     `ws://${window.location.host}/ws`
   );
 
+  const [models, setModels] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/models")
+      .then((r) => r.json())
+      .then((data) => {
+        setModels(data.models || []);
+      })
+      .catch(() => {});
+  }, []);
+
   const call = async (path, method = "POST") => {
     await fetch(path, { method });
   };
@@ -19,7 +31,11 @@ export default function App() {
       <h1>RPS Simulator AI</h1>
       <Controls
         connected={connected}
-        onStart={() => call("/api/sim/start")}
+        policy={latest?.policy}
+        onStartRandom={() => call("/api/sim/start?mode=random")}
+        onStartTrained={(model) =>
+          call(`/api/sim/start?mode=trained&model=${model}`)
+        }
         onStop={() => call("/api/sim/stop")}
         onReset={() => call("/api/sim/reset")}
       />
@@ -31,6 +47,7 @@ export default function App() {
           <div className="info">
             <p>krok: {latest?.step ?? 0}</p>
             <p>zwyciezca: {latest?.winner ?? "-"}</p>
+            <p>polityka: {latest?.policy ?? "-"}</p>
             <p>
               populacje:{" "}
               {latest ? JSON.stringify(latest.populations) : "-"}

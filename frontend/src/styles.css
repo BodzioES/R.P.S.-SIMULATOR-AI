@@ -19,13 +19,20 @@ h1 {
 .controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .controls button {
-  padding: 8px 18px;
-  font-size: 14px;
+  padding: 8px 16px;
+  font-size: 13px;
   border: none;
   border-radius: 6px;
   background: #2f3542;
@@ -37,10 +44,37 @@ h1 {
   background: #3d4653;
 }
 
-.status {
-  margin-left: auto;
+.btn-random {
+  background: #3b4252 !important;
+}
+
+.btn-ai {
+  background: #1a5c2e !important;
+}
+
+.btn-ai:hover {
+  background: #22723a !important;
+}
+
+.controls select {
+  padding: 7px 10px;
   font-size: 13px;
-  padding: 6px 10px;
+  border: 1px solid #3b4252;
+  border-radius: 6px;
+  background: #232832;
+  color: #e8e8e8;
+}
+
+.status-bar {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status {
+  font-size: 12px;
+  padding: 5px 10px;
   border-radius: 6px;
 }
 
@@ -52,6 +86,14 @@ h1 {
 .status.bad {
   background: #3b1d1d;
   color: #e74c3c;
+}
+
+.policy-badge {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #232832;
+  color: #a0a8b8;
 }
 
 .layout {
