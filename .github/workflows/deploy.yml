@@ -17,9 +17,12 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /home/${{ secrets.VPS_USERNAME }}/rps-simulator
-
+            DEPLOY_DIR="/home/${{ secrets.VPS_USERNAME }}/rps-simulator"
+            if [ ! -d "$DEPLOY_DIR/.git" ]; then
+              mkdir -p "$DEPLOY_DIR"
+              git clone https://github.com/BodzioES/R.P.S.--SIMULATOR-AI.git "$DEPLOY_DIR"
+            fi
+            cd "$DEPLOY_DIR"
             git pull origin main
-
-            docker compose down
+            docker compose down || true
             docker compose up -d --build
