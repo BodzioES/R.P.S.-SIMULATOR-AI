@@ -7,8 +7,9 @@ import { useWebSocket } from "./hooks/useWebSocket.js";
 const BOARD_SIZE = 64;
 
 export default function App() {
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
   const { latest, historyRef, connected } = useWebSocket(
-    `ws://${window.location.host}/ws`
+    `${proto}//${window.location.host}/ws`
   );
 
   const [models, setModels] = useState([]);
