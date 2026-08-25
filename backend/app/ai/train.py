@@ -55,6 +55,7 @@ def train(
     model = PPO(
         "MlpPolicy",
         env,
+        device="cpu",
         learning_rate=3e-4,
         n_steps=2048,
         batch_size=256,
