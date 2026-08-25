@@ -6,8 +6,8 @@ from ..config import AGENTS_PER_TYPE, BOARD_SIZE, EPISODE_LENGTH, OBS_WINDOW
 from .entities import Type
 from .rps_env import RPSEnv
 
-OBS_PER_AGENT = OBS_WINDOW * OBS_WINDOW * len(Type) + len(Type)
 NUM_TYPES = len(Type)
+OBS_PER_AGENT = OBS_WINDOW * OBS_WINDOW * NUM_TYPES + NUM_TYPES
 
 
 class RPSGymEnv(gym.Env):
@@ -25,7 +25,7 @@ class RPSGymEnv(gym.Env):
             shape=(self.obs_size,),
             dtype=np.float32,
         )
-        self.action_space = spaces.Discrete(9)
+        self.action_space = spaces.MultiDiscrete([9] * self.num_agents)
 
     def _build_obs(self):
         obs_dict = self.env.observations()
@@ -42,10 +42,22 @@ class RPSGymEnv(gym.Env):
         return self._build_obs(), {}
 
     def step(self, action):
-        actions = {i: int(action) for i in range(self.num_agents)}
+        actions = {i: int(action[i]) for i in range(self.num_agents)}
         _, rewards, done, info = self.env.step(actions)
         total = sum(rewards.values())
         mean_reward = total / len(rewards) if rewards else 0.0
         conversions = info.get("conversions", 0)
-        shaped = mean_reward + (0.5 if conversions > 0 else 0.0)
+
+        shaped = mean_reward
+        shaped += conversions * 0.2
+        shaped -= 0.005
+
+        populations = info.get("populations", {})
+        total_pop = sum(populations.values()) or 1
+        max_share = max(populations.values()) / total_pop
+        shaped += (max_share - 1 / 3) * 2.0
+
+        if done and info.get("winning_type") is None:
+            shaped -= 10.0
+
         return self._build_obs(), shaped, done, False, info
