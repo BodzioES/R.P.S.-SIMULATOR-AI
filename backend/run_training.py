@@ -11,7 +11,7 @@ def main():
     parser = argparse.ArgumentParser(description="RPS Simulator AI - Trening PPO")
     parser.add_argument("--episodes", type=int, default=500, help="Liczba epizodow treningowych")
     parser.add_argument("--board-size", type=int, default=64)
-    parser.add_argument("--agents-per-type", type=int, default=20)
+    parser.add_argument("--agents-per-type", type=int, default=5)
     parser.add_argument("--episode-length", type=int, default=500)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--eval-every", type=int, default=10)

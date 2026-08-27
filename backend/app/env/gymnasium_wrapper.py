@@ -55,9 +55,11 @@ class RPSGymEnv(gym.Env):
         populations = info.get("populations", {})
         total_pop = sum(populations.values()) or 1
         max_share = max(populations.values()) / total_pop
-        shaped += (max_share - 1 / 3) * 2.0
+        shaped += (max_share - 1 / 3) * 0.5
 
-        if done and info.get("winning_type") is None:
-            shaped -= 10.0
+        if done and info.get("winning_type") is not None:
+            shaped += 50.0
+        elif done:
+            shaped -= 5.0
 
         return self._build_obs(), shaped, done, False, info
