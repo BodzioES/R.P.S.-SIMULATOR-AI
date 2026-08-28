@@ -43,14 +43,14 @@ export default function App() {
       <div className="layout">
         <Board snapshot={latest} boardSize={BOARD_SIZE} />
         <div className="side">
-          <h2>Populacje</h2>
+          <h2>Populations</h2>
           <PopulationChart history={historyRef.current} />
           <div className="info">
-            <p>krok: {latest?.step ?? 0}</p>
-            <p>zwyciezca: {latest?.winner ?? "-"}</p>
-            <p>polityka: {latest?.policy ?? "-"}</p>
+            <p>step: {latest?.step ?? 0}</p>
+            <p>winner: {latest?.winner ?? "-"}</p>
+            <p>policy: {latest?.policy ?? "-"}</p>
             <p>
-              populacje:{" "}
+              populations:{" "}
               {latest ? JSON.stringify(latest.populations) : "-"}
             </p>
           </div>

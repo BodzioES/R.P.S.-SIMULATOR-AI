@@ -27,7 +27,7 @@ export default function Controls({
       </div>
       <div className="status-bar">
         <span className={connected ? "status ok" : "status bad"}>
-          {connected ? "WS" : "brak"}
+          {connected ? "WS" : "OFF"}
         </span>
         <span className="policy-badge">{policy ?? "-"}</span>
       </div>
