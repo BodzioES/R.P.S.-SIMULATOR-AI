@@ -25,7 +25,11 @@ class RPSGymEnv(gym.Env):
             shape=(self.obs_size,),
             dtype=np.float32,
         )
-        self.action_space = spaces.MultiDiscrete([9] * self.num_agents)
+        self.action_space = spaces.Box(
+            low=-1.0, high=1.0,
+            shape=(self.num_agents * 2,),
+            dtype=np.float32,
+        )
 
     def _build_obs(self):
         obs_dict = self.env.observations()
@@ -42,24 +46,38 @@ class RPSGymEnv(gym.Env):
         return self._build_obs(), {}
 
     def step(self, action):
-        actions = {i: int(action[i]) for i in range(self.num_agents)}
+        raw = np.array(action, dtype=np.float32).reshape(self.num_agents, 2)
+        actions = {}
+        for i in range(self.num_agents):
+            dx, dy = float(raw[i, 0]), float(raw[i, 1])
+            mag = (dx * dx + dy * dy) ** 0.5
+            if mag > 1.0:
+                dx /= mag
+                dy /= mag
+            actions[i] = (dx, dy)
+
         _, rewards, done, info = self.env.step(actions)
         total = sum(rewards.values())
         mean_reward = total / len(rewards) if rewards else 0.0
         conversions = info.get("conversions", 0)
 
         shaped = mean_reward
-        shaped += conversions * 0.2
-        shaped -= 0.005
+        shaped += conversions * 1.0
+        shaped -= 0.01
 
         populations = info.get("populations", {})
         total_pop = sum(populations.values()) or 1
-        max_share = max(populations.values()) / total_pop
-        shaped += (max_share - 1 / 3) * 0.5
+        max_pop = max(populations.values())
+        max_share = max_pop / total_pop
+        shaped += (max_share - 1 / 3) * 1.0
+
+        threshold_60 = int(total_pop * 0.6 + 0.999)
+        done_bonus_60 = 15.0 if max_pop >= threshold_60 else 0.0
 
         if done and info.get("winning_type") is not None:
-            shaped += 50.0
+            shaped += 200.0
         elif done:
-            shaped -= 5.0
+            shaped -= 20.0
+            shaped += done_bonus_60
 
         return self._build_obs(), shaped, done, False, info

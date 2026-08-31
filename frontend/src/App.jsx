@@ -4,8 +4,6 @@ import Controls from "./components/Controls.jsx";
 import PopulationChart from "./components/PopulationChart.jsx";
 import { useWebSocket } from "./hooks/useWebSocket.js";
 
-const BOARD_SIZE = 64;
-
 export default function App() {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
   const { latest, historyRef, connected } = useWebSocket(
@@ -13,6 +11,7 @@ export default function App() {
   );
 
   const [models, setModels] = useState([]);
+  const [boardSize, setBoardSize] = useState(8);
 
   useEffect(() => {
     fetch("/api/models")
@@ -23,9 +22,15 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  const call = async (path, method = "POST") => {
-    await fetch(path, { method });
+  const call = (path, method = "POST") => {
+    return fetch(path, { method });
   };
+
+  const startRandom = () =>
+    call(`/api/sim/start?mode=random&board_size=${boardSize}&agents_per_type=5&episode_length=200`);
+
+  const startTrained = (model) =>
+    call(`/api/sim/start?mode=trained&model=${model}&board_size=${boardSize}&agents_per_type=5&episode_length=200`);
 
   return (
     <div className="app">
@@ -33,15 +38,16 @@ export default function App() {
       <Controls
         connected={connected}
         policy={latest?.policy}
-        onStartRandom={() => call("/api/sim/start?mode=random")}
-        onStartTrained={(model) =>
-          call(`/api/sim/start?mode=trained&model=${model}`)
-        }
+        models={models}
+        boardSize={boardSize}
+        onBoardSizeChange={setBoardSize}
+        onStartRandom={startRandom}
+        onStartTrained={startTrained}
         onStop={() => call("/api/sim/stop")}
         onReset={() => call("/api/sim/reset")}
       />
       <div className="layout">
-        <Board snapshot={latest} boardSize={BOARD_SIZE} />
+        <Board snapshot={latest} boardSize={boardSize} />
         <div className="side">
           <h2>Populations</h2>
           <PopulationChart history={historyRef.current} />

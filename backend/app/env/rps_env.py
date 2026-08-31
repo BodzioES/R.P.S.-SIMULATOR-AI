@@ -2,7 +2,7 @@ import random
 
 from ..config import AGENTS_PER_TYPE, BOARD_SIZE, EPISODE_LENGTH
 from .entities import Type
-from .grid import create_agents, group_by_cell, move_agent, population_counts, resolve_collisions
+from .grid import create_agents, move_agent, population_counts, resolve_collisions
 from .observations import encode_observation
 from .reward import compute_rewards
 
@@ -26,7 +26,7 @@ class RPSEnv:
 
     def state(self):
         return [
-            {"id": a.id, "type": a.type.value, "x": a.x, "y": a.y}
+            {"id": a.id, "type": a.type.value, "x": round(a.x, 3), "y": round(a.y, 3)}
             for a in self.agents
         ]
 
@@ -44,9 +44,8 @@ class RPSEnv:
         return None
 
     def observations(self):
-        cell_map = group_by_cell(self.agents)
         return {
-            a.id: encode_observation(a, cell_map, self.board_size)
+            a.id: encode_observation(a, self.agents, self.board_size)
             for a in self.agents
         }
 
@@ -58,9 +57,10 @@ class RPSEnv:
         prev_types = {a.id: a.type for a in self.agents}
 
         for agent in self.agents:
-            agent.x, agent.y = move_agent(agent, actions[agent.id], self.board_size)
+            dx, dy = actions[agent.id]
+            agent.x, agent.y = move_agent(agent, dx, dy, self.board_size)
 
-        resolve_collisions(self.agents)
+        resolve_collisions(self.agents, self.board_size)
 
         new_pop = population_counts(self.agents)
         rewards = compute_rewards(prev_pop, prev_types, new_pop, self.agents)
@@ -80,5 +80,5 @@ class RPSEnv:
     def render(self):
         grid = [["." for _ in range(self.board_size)] for _ in range(self.board_size)]
         for a in self.agents:
-            grid[a.y][a.x] = a.type.name[0]
+            grid[int(a.y) % self.board_size][int(a.x) % self.board_size] = a.type.name[0]
         return "\n".join("".join(row) for row in grid)

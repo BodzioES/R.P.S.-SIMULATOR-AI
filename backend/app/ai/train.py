@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import EvalCallback
-from stable_baselines3.common.vec_env import DummyVecEnv
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
 from ..env.gymnasium_wrapper import RPSGymEnv
 
@@ -40,7 +40,10 @@ def train(
     eval_freq = eval_every * episode_length
 
     env = DummyVecEnv([make_env(**env_kwargs)])
+    env = VecNormalize(env, norm_obs=True, norm_reward=True, clip_obs=10.0, clip_reward=10.0)
+
     eval_env = DummyVecEnv([make_env(**env_kwargs)])
+    eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False, clip_obs=10.0)
 
     eval_callback = EvalCallback(
         eval_env,
@@ -56,13 +59,14 @@ def train(
         "MlpPolicy",
         env,
         device="cpu",
-        learning_rate=3e-4,
+        learning_rate=2e-4,
         n_steps=2048,
         batch_size=256,
         n_epochs=4,
         gamma=0.99,
         gae_lambda=0.95,
         clip_range=0.2,
+        target_kl=0.03,
         ent_coef=0.01,
         verbose=1,
         tensorboard_log=str(log_path),
@@ -74,7 +78,17 @@ def train(
     )
 
     model.save(str(ckpt_path / "final"))
-    print(f"\nTrening zakonczony.")
-    print(f"Checkpointy: {ckpt_path.resolve()}")
+    # alias dla kompatybilnosci z /api/sim/start (szuka model.zip) i view_trained.py
+    final_path = ckpt_path / "final.zip"
+    if final_path.exists():
+        import shutil
+        shutil.copy(str(final_path), str(ckpt_path / "model.zip"))
+    best_model = ckpt_path / "best" / "best_model.zip"
+    if best_model.exists():
+        import shutil
+        shutil.copy(str(best_model), str(ckpt_path / "best" / "model.zip"))
+    env.save(str(ckpt_path / "vecnorm_stats.pkl"))
+    print(f"\nTraining finished.")
+    print(f"Checkpoints: {ckpt_path.resolve()}")
     print(f"TensorBoard: tensorboard --logdir {log_path.resolve()}")
     return model

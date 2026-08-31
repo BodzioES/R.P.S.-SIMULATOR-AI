@@ -12,5 +12,5 @@ class Type(Enum):
 class Agent:
     id: int
     type: Type
-    x: int
-    y: int
+    x: float
+    y: float

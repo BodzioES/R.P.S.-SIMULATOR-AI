@@ -6,6 +6,8 @@ const TYPE_INFO = {
   SCISSORS: { color: "#e74c3c", label: "S" },
 };
 
+const AGENT_RADIUS = 0.25;
+
 export default function Board({ snapshot, boardSize }) {
   const canvasRef = useRef(null);
 
@@ -18,15 +20,19 @@ export default function Board({ snapshot, boardSize }) {
 
     if (!snapshot) return;
     const cell = size / boardSize;
+    const radiusPx = AGENT_RADIUS * cell;
 
     for (const agent of snapshot.agents) {
       const info = TYPE_INFO[agent.type];
-      const cx = (agent.x + 0.5) * cell;
-      const cy = (agent.y + 0.5) * cell;
+      const cx = (agent.x / boardSize) * size;
+      const cy = (agent.y / boardSize) * size;
       ctx.beginPath();
-      ctx.arc(cx, cy, cell * 0.35, 0, Math.PI * 2);
+      ctx.arc(cx, cy, radiusPx, 0, Math.PI * 2);
       ctx.fillStyle = info.color;
       ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.3)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
   }, [snapshot, boardSize]);
 
