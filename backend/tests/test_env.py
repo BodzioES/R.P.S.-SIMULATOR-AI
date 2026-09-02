@@ -26,11 +26,13 @@ def test_reset_agents_have_float_coords():
         assert 0 <= a.y < 10
 
 
-def test_move_wraps_around_board():
-    agent = Agent(id=0, type=Type.ROCK, x=0.0, y=0.0)
+def test_move_bounces_off_wall():
+    agent = Agent(id=0, type=Type.ROCK, x=0.1, y=0.1)
     x, y = move_agent(agent, -1.0, -1.0, board_size=10)
-    assert abs(x - 9.9) < 0.001
-    assert abs(y - 9.9) < 0.001
+    assert x > 0.0
+    assert y > 0.0
+    assert x < 0.6
+    assert y < 0.6
 
 
 def test_stay_action_keeps_position():
@@ -43,7 +45,7 @@ def test_stay_action_keeps_position():
 def test_collision_converts_scissors_to_rock():
     rock = Agent(id=0, type=Type.ROCK, x=3.0, y=3.0)
     scissors = Agent(id=1, type=Type.SCISSORS, x=3.0, y=3.0)
-    resolve_collisions([rock, scissors], board_size=10)
+    resolve_collisions([rock, scissors])
     assert scissors.type == Type.ROCK
     assert rock.type == Type.ROCK
 
@@ -51,7 +53,7 @@ def test_collision_converts_scissors_to_rock():
 def test_weaker_does_not_convert_stronger():
     scissors = Agent(id=0, type=Type.SCISSORS, x=3.0, y=3.0)
     rock = Agent(id=1, type=Type.ROCK, x=3.0, y=3.0)
-    resolve_collisions([scissors, rock], board_size=10)
+    resolve_collisions([scissors, rock])
     assert scissors.type == Type.ROCK
     assert rock.type == Type.ROCK
 
@@ -59,7 +61,7 @@ def test_weaker_does_not_convert_stronger():
 def test_same_type_untouched():
     a = Agent(id=0, type=Type.PAPER, x=3.0, y=3.0)
     b = Agent(id=1, type=Type.PAPER, x=3.0, y=3.0)
-    resolve_collisions([a, b], board_size=10)
+    resolve_collisions([a, b])
     assert a.type == Type.PAPER
     assert b.type == Type.PAPER
 

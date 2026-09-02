@@ -57,9 +57,11 @@ class LearnedPolicy:
         obs_dict = env.observations()
         parts = []
         for i in range(len(env.agents)):
-            window, own = obs_dict[i]
+            window, own, wall, pop = obs_dict[i]
             parts.append(np.array(window, dtype=np.float32).reshape(-1))
             parts.append(np.array(own, dtype=np.float32))
+            parts.append(np.array(wall, dtype=np.float32))
+            parts.append(np.array(pop, dtype=np.float32))
         return np.concatenate(parts).astype(np.float32)
 
     def actions(self, env):

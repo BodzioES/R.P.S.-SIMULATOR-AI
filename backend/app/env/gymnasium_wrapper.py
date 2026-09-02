@@ -2,12 +2,23 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from ..config import AGENTS_PER_TYPE, BOARD_SIZE, EPISODE_LENGTH, OBS_WINDOW
+from ..config import (
+    AGENTS_PER_TYPE,
+    BOARD_SIZE,
+    EPISODE_LENGTH,
+    OBS_WINDOW,
+    VISION_K,
+    VISION_MODE,
+    VISION_RADIUS,
+)
 from .entities import Type
 from .rps_env import RPSEnv
 
 NUM_TYPES = len(Type)
-OBS_PER_AGENT = OBS_WINDOW * OBS_WINDOW * NUM_TYPES + NUM_TYPES
+if VISION_MODE == "radius":
+    OBS_PER_AGENT = VISION_K * (2 + NUM_TYPES) + NUM_TYPES + 4 + 3  # K*(dx,dy+onehot) + own + wall + pop
+else:
+    OBS_PER_AGENT = OBS_WINDOW * OBS_WINDOW * NUM_TYPES + NUM_TYPES + 4 + 3  # +4 wall +3 pop
 
 
 class RPSGymEnv(gym.Env):
@@ -35,9 +46,11 @@ class RPSGymEnv(gym.Env):
         obs_dict = self.env.observations()
         parts = []
         for i in range(self.num_agents):
-            window, own = obs_dict[i]
+            window, own, wall, pop = obs_dict[i]
             parts.append(np.array(window, dtype=np.float32).reshape(-1))
             parts.append(np.array(own, dtype=np.float32))
+            parts.append(np.array(wall, dtype=np.float32))
+            parts.append(np.array(pop, dtype=np.float32))
         return np.concatenate(parts)
 
     def reset(self, *, seed=None, options=None):
@@ -62,8 +75,19 @@ class RPSGymEnv(gym.Env):
         conversions = info.get("conversions", 0)
 
         shaped = mean_reward
-        shaped += conversions * 1.0
+        shaped += conversions * 2.0
         shaped -= 0.01
+        # wall/corner penalty: zniechęć do chowania się przy ścianach
+        wall_hits = 0
+        corner_hits = 0
+        for a in self.env.agents:
+            near_wall = min(a.x, a.y, self.env.board_size - a.x, self.env.board_size - a.y)
+            if near_wall < 0.7:
+                wall_hits += 1
+                if min(a.x, self.env.board_size - a.x) < 0.7 and min(a.y, self.env.board_size - a.y) < 0.7:
+                    corner_hits += 1
+        shaped -= wall_hits * 0.05
+        shaped -= corner_hits * 0.08
 
         populations = info.get("populations", {})
         total_pop = sum(populations.values()) or 1

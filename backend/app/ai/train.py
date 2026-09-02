@@ -19,10 +19,11 @@ def train(
     eval_every=10,
     board_size=64,
     agents_per_type=20,
-    episode_length=1000,
+    episode_length=300,
     log_dir="runs",
     checkpoint_dir="checkpoints",
     seed=42,
+    resume=False,
 ):
     env_kwargs = dict(
         board_size=board_size,
@@ -45,6 +46,38 @@ def train(
     eval_env = DummyVecEnv([make_env(**env_kwargs)])
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False, clip_obs=10.0)
 
+    vecnorm_path = ckpt_path / "vecnorm_stats.pkl"
+    model_path = ckpt_path / "model.zip"
+
+    if resume and model_path.exists() and vecnorm_path.exists():
+        print(f"Resuming from {model_path}")
+        env = VecNormalize.load(str(vecnorm_path), env)
+        env.norm_reward = True
+        env.clip_reward = 10.0
+        model = PPO.load(str(model_path), env=env, device="cpu")
+        eval_env = VecNormalize.load(str(vecnorm_path), eval_env)
+        eval_env.training = False
+        eval_env.norm_reward = False
+    else:
+        if resume:
+            print(f"No checkpoint found at {model_path}, starting fresh.")
+        model = PPO(
+            "MlpPolicy",
+            env,
+            device="cpu",
+            learning_rate=2e-4,
+            n_steps=2048,
+            batch_size=256,
+            n_epochs=4,
+            gamma=0.99,
+            gae_lambda=0.95,
+            clip_range=0.2,
+            target_kl=0.1,
+            ent_coef=0.01,
+            verbose=1,
+            tensorboard_log=str(log_path),
+        )
+
     eval_callback = EvalCallback(
         eval_env,
         best_model_save_path=str(ckpt_path / "best"),
@@ -55,26 +88,10 @@ def train(
         verbose=1,
     )
 
-    model = PPO(
-        "MlpPolicy",
-        env,
-        device="cpu",
-        learning_rate=2e-4,
-        n_steps=2048,
-        batch_size=256,
-        n_epochs=4,
-        gamma=0.99,
-        gae_lambda=0.95,
-        clip_range=0.2,
-        target_kl=0.03,
-        ent_coef=0.01,
-        verbose=1,
-        tensorboard_log=str(log_path),
-    )
-
     model.learn(
         total_timesteps=total_timesteps,
         callback=eval_callback,
+        reset_num_timesteps=not resume,
     )
 
     model.save(str(ckpt_path / "final"))

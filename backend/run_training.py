@@ -12,9 +12,10 @@ def main():
     parser.add_argument("--episodes", type=int, default=500, help="Liczba epizodow treningowych")
     parser.add_argument("--board-size", type=int, default=8)
     parser.add_argument("--agents-per-type", type=int, default=5)
-    parser.add_argument("--episode-length", type=int, default=200)
+    parser.add_argument("--episode-length", type=int, default=300)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--eval-every", type=int, default=10)
+    parser.add_argument("--resume", action="store_true", help="Wznow trening z istniejacego modelu")
     args = parser.parse_args()
 
     total_timesteps = args.episodes * args.episode_length
@@ -25,6 +26,7 @@ def main():
     print(f"  trening: {args.episodes} epizodow ({total_timesteps} krokow)")
     print(f"  ewaluacja: co {args.eval_every} epizodow")
     print(f"  seed: {args.seed}")
+    print(f"  resume: {args.resume}")
     print()
 
     train(
@@ -34,6 +36,7 @@ def main():
         agents_per_type=args.agents_per_type,
         episode_length=args.episode_length,
         seed=args.seed,
+        resume=args.resume,
     )
 
 

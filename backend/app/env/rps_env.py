@@ -44,8 +44,9 @@ class RPSEnv:
         return None
 
     def observations(self):
+        pops = self.populations
         return {
-            a.id: encode_observation(a, self.agents, self.board_size)
+            a.id: encode_observation(a, self.agents, self.board_size, pops)
             for a in self.agents
         }
 
@@ -60,7 +61,7 @@ class RPSEnv:
             dx, dy = actions[agent.id]
             agent.x, agent.y = move_agent(agent, dx, dy, self.board_size)
 
-        resolve_collisions(self.agents, self.board_size)
+        resolve_collisions(self.agents)
 
         new_pop = population_counts(self.agents)
         rewards = compute_rewards(prev_pop, prev_types, new_pop, self.agents)

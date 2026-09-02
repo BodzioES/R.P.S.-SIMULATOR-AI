@@ -6,7 +6,7 @@ const TYPE_INFO = {
   SCISSORS: { color: "#e74c3c", label: "S" },
 };
 
-const AGENT_RADIUS = 0.25;
+const AGENT_RADIUS = 0.5;
 
 export default function Board({ snapshot, boardSize }) {
   const canvasRef = useRef(null);

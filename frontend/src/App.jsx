@@ -27,10 +27,10 @@ export default function App() {
   };
 
   const startRandom = () =>
-    call(`/api/sim/start?mode=random&board_size=${boardSize}&agents_per_type=5&episode_length=200`);
+    call(`/api/sim/start?mode=random&board_size=${boardSize}&agents_per_type=5&episode_length=300`);
 
   const startTrained = (model) =>
-    call(`/api/sim/start?mode=trained&model=${model}&board_size=${boardSize}&agents_per_type=5&episode_length=200`);
+    call(`/api/sim/start?mode=trained&model=${model}&board_size=${boardSize}&agents_per_type=5&episode_length=300`);
 
   return (
     <div className="app">
