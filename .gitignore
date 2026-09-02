@@ -3,5 +3,8 @@
 __pycache__/
 node_modules/
 frontend/dist/
-checkpoints/
+checkpoints/*
+!checkpoints/model.zip
+!checkpoints/best/
+!checkpoints/vecnorm_stats.pkl
 runs/
