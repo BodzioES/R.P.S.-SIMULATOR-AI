@@ -1,11 +1,46 @@
+from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
 from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.callbacks import BaseCallback, EvalCallback
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
+from ..env.entities import Type
 from ..env.gymnasium_wrapper import RPSGymEnv
+
+
+class WinTracker(BaseCallback):
+    def __init__(self, verbose=0):
+        super().__init__(verbose)
+        self.wins = defaultdict(int)
+        self.draws = 0
+        self.total_episodes = 0
+
+    def _on_step(self) -> bool:
+        for i, done in enumerate(self.locals.get("dones", [])):
+            if done:
+                info = self.locals["infos"][i]
+                winner = info.get("winning_type")
+                if winner is not None:
+                    if isinstance(winner, Type):
+                        self.wins[winner.name] += 1
+                    else:
+                        self.wins[str(winner)] += 1
+                else:
+                    self.draws += 1
+                self.total_episodes += 1
+
+                for t in ("ROCK", "PAPER", "SCISSORS"):
+                    count = self.wins.get(t, 0)
+                    rate = count / self.total_episodes if self.total_episodes else 0.0
+                    self.logger.record(f"wins/{t}", count)
+                    self.logger.record(f"win_rate/{t}", rate)
+                self.logger.record("wins/draw", self.draws)
+                self.logger.record("wins/draw_rate",
+                                   self.draws / self.total_episodes if self.total_episodes else 0.0)
+                self.logger.record("wins/total_episodes", self.total_episodes)
+        return True
 
 
 def make_env(**kwargs):
@@ -88,9 +123,11 @@ def train(
         verbose=1,
     )
 
+    win_tracker = WinTracker()
+
     model.learn(
         total_timesteps=total_timesteps,
-        callback=eval_callback,
+        callback=[eval_callback, win_tracker],
         reset_num_timesteps=not resume,
     )
 
@@ -108,4 +145,11 @@ def train(
     print(f"\nTraining finished.")
     print(f"Checkpoints: {ckpt_path.resolve()}")
     print(f"TensorBoard: tensorboard --logdir {log_path.resolve()}")
+    if win_tracker.total_episodes > 0:
+        print(f"\nWin stats ({win_tracker.total_episodes} episodes):")
+        for t in ("ROCK", "PAPER", "SCISSORS"):
+            count = win_tracker.wins.get(t, 0)
+            rate = count / win_tracker.total_episodes * 100
+            print(f"  {t}: {count} ({rate:.1f}%)")
+        print(f"  Draws: {win_tracker.draws} ({win_tracker.draws / win_tracker.total_episodes * 100:.1f}%)")
     return model
