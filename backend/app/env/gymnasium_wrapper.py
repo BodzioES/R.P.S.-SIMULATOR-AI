@@ -75,7 +75,7 @@ class RPSGymEnv(gym.Env):
         conversions = info.get("conversions", 0)
 
         shaped = mean_reward
-        shaped += conversions * 2.0
+        shaped += conversions * 5.0
         shaped -= 0.01
         # wall/corner penalty: zniechęć do chowania się przy ścianach
         wall_hits = 0
@@ -86,8 +86,8 @@ class RPSGymEnv(gym.Env):
                 wall_hits += 1
                 if min(a.x, self.env.board_size - a.x) < 0.7 and min(a.y, self.env.board_size - a.y) < 0.7:
                     corner_hits += 1
-        shaped -= wall_hits * 0.05
-        shaped -= corner_hits * 0.08
+        shaped -= wall_hits * 0.2
+        shaped -= corner_hits * 0.25
 
         populations = info.get("populations", {})
         total_pop = sum(populations.values()) or 1
