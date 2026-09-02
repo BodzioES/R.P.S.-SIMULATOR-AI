@@ -87,3 +87,4 @@ No config editing is needed for a first run. Screenshots can be added here if ne
 ## 4. Try it Online
 
 No install needed — open **https://rps-simulator.kuncrog.com/** and use the controls as described above. The hosted version runs the same Docker build as local.
+
