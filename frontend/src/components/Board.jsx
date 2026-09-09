@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 
 const TYPE_INFO = {
-  ROCK: { color: "#9e9e9e", label: "R" },
-  PAPER: { color: "#4f8ef7", label: "P" },
-  SCISSORS: { color: "#e74c3c", label: "S" },
+  ROCK: { color: "#9e9e9e", emoji: "🪨", glow: "rgba(158, 158, 158, 0.3)" },
+  PAPER: { color: "#60a5fa", emoji: "📄", glow: "rgba(96, 165, 250, 0.3)" },
+  SCISSORS: { color: "#f87171", emoji: "✂️", glow: "rgba(248, 113, 113, 0.3)" },
 };
 
 const AGENT_RADIUS = 0.5;
@@ -21,18 +21,28 @@ export default function Board({ snapshot, boardSize }) {
     if (!snapshot) return;
     const cell = size / boardSize;
     const radiusPx = AGENT_RADIUS * cell;
+    const fontSize = Math.max(10, Math.floor(cell * 0.8));
 
     for (const agent of snapshot.agents) {
       const info = TYPE_INFO[agent.type];
       const cx = (agent.x / boardSize) * size;
       const cy = (agent.y / boardSize) * size;
+
+      ctx.shadowColor = info.glow;
+      ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(cx, cy, radiusPx, 0, Math.PI * 2);
-      ctx.fillStyle = info.color;
+      ctx.fillStyle = info.color + "33";
       ctx.fill();
-      ctx.strokeStyle = "rgba(0,0,0,0.3)";
+      ctx.strokeStyle = info.color + "66";
       ctx.lineWidth = 1;
       ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.font = `${fontSize}px serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(info.emoji, cx, cy);
     }
   }, [snapshot, boardSize]);
 

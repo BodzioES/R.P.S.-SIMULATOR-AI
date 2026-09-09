@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Board from "./components/Board.jsx";
 import Controls from "./components/Controls.jsx";
 import PopulationChart from "./components/PopulationChart.jsx";
+import StatsPanel from "./components/StatsPanel.jsx";
 import { useWebSocket } from "./hooks/useWebSocket.js";
 
 export default function App() {
@@ -49,16 +50,11 @@ export default function App() {
       <div className="layout">
         <Board snapshot={latest} boardSize={boardSize} />
         <div className="side">
+          <StatsPanel snapshot={latest} />
           <h2>Populations</h2>
           <PopulationChart history={historyRef.current} />
           <div className="info">
-            <p>step: {latest?.step ?? 0}</p>
-            <p>winner: {latest?.winner ?? "-"}</p>
-            <p>policy: {latest?.policy ?? "-"}</p>
-            <p>
-              populations:{" "}
-              {latest ? JSON.stringify(latest.populations) : "-"}
-            </p>
+            <p><strong>policy</strong><span>{latest?.policy ?? "-"}</span></p>
           </div>
         </div>
       </div>
