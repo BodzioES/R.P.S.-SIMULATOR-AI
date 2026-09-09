@@ -3,7 +3,6 @@ import { useState } from "react";
 export default function Controls({
   connected,
   policy,
-  models,
   boardSize,
   onBoardSizeChange,
   onStartRandom,
@@ -11,23 +10,15 @@ export default function Controls({
   onStop,
   onReset,
 }) {
-  const [model, setModel] = useState("best");
-
   return (
     <div className="controls">
       <div className="control-group">
         <button onClick={onStartRandom} className="btn-random">
           Start (Random)
         </button>
-        <button onClick={() => onStartTrained(model)} className="btn-ai">
+        <button onClick={() => onStartTrained()} className="btn-ai">
           Start (AI)
         </button>
-        <select value={model} onChange={(e) => setModel(e.target.value)}>
-          {models.map((m) => (
-            <option key={m.name} value={m.name}>{m.display_name || m.name}</option>
-          ))}
-          <option value="best">best</option>
-        </select>
         <select value={boardSize} onChange={(e) => onBoardSizeChange(Number(e.target.value))}>
           <option value={4}>4x4</option>
           <option value={8}>8x8</option>

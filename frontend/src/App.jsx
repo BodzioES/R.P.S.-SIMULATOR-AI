@@ -11,17 +11,7 @@ export default function App() {
     `${proto}//${window.location.host}/ws`
   );
 
-  const [models, setModels] = useState([]);
   const [boardSize, setBoardSize] = useState(8);
-
-  useEffect(() => {
-    fetch("/api/models")
-      .then((r) => r.json())
-      .then((data) => {
-        setModels(data.models || []);
-      })
-      .catch(() => {});
-  }, []);
 
   const call = (path, method = "POST") => {
     return fetch(path, { method });
@@ -30,8 +20,8 @@ export default function App() {
   const startRandom = () =>
     call(`/api/sim/start?mode=random&board_size=${boardSize}&agents_per_type=5&episode_length=300`);
 
-  const startTrained = (model) =>
-    call(`/api/sim/start?mode=trained&model=${model}&board_size=${boardSize}&agents_per_type=5&episode_length=300`);
+  const startTrained = () =>
+    call(`/api/sim/start?mode=trained&board_size=${boardSize}&agents_per_type=5&episode_length=300`);
 
   return (
     <div className="app">
@@ -39,7 +29,6 @@ export default function App() {
       <Controls
         connected={connected}
         policy={latest?.policy}
-        models={models}
         boardSize={boardSize}
         onBoardSizeChange={setBoardSize}
         onStartRandom={startRandom}

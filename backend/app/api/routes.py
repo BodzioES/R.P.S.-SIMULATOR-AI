@@ -9,6 +9,13 @@ router = APIRouter(prefix="/api")
 
 CHECKPOINTS_DIR = Path(__file__).resolve().parent.parent.parent / "checkpoints"
 
+# auto-wybor modelu na podstawie rozmiaru planszy
+MODEL_BY_SIZE = {
+    8: "rps-1.0",
+    16: "rps-1.0",
+    32: "best",
+}
+
 
 @router.get("/state")
 def get_state():
@@ -25,7 +32,11 @@ def get_state():
 
 
 @router.post("/sim/start")
-async def start(mode: str = "random", model: str = "best", board_size: int = 8, agents_per_type: int = 5, episode_length: int = 200):
+async def start(mode: str = "random", model: str = "auto", board_size: int = 8, agents_per_type: int = 5, episode_length: int = 200):
+    # auto-wybor modelu na podstawie rozmiaru planszy
+    if model == "auto":
+        model = MODEL_BY_SIZE.get(board_size, "best")
+
     if mode == "trained":
         # EvalCallback zapisuje best_model.zip — obsluz model.zip i best_model.zip
         for fname in ("model.zip", "best_model.zip"):
@@ -40,7 +51,7 @@ async def start(mode: str = "random", model: str = "best", board_size: int = 8, 
         manager.reconfigure(board_size, agents_per_type)
         manager.env.episode_length = episode_length
 
-        vecnorm = CHECKPOINTS_DIR / "vecnorm_stats.pkl"
+        vecnorm = CHECKPOINTS_DIR / model / "vecnorm_stats.pkl"
         try:
             policy = LearnedPolicy(
                 str(model_path),
