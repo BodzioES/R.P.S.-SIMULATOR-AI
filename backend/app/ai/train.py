@@ -142,6 +142,14 @@ def train(
         import shutil
         shutil.copy(str(best_model), str(ckpt_path / "best" / "model.zip"))
     env.save(str(ckpt_path / "vecnorm_stats.pkl"))
+    # zapisz nazwe treningu (najnowszy katalog w runs/)
+    run_name = "PPO"
+    runs_dir = log_path
+    if runs_dir.exists():
+        ppo_dirs = sorted(runs_dir.glob("PPO_*"), key=lambda p: p.stat().st_mtime)
+        if ppo_dirs:
+            run_name = ppo_dirs[-1].name
+    (ckpt_path / "best" / "name.txt").write_text(run_name, encoding="utf-8")
     print(f"\nTraining finished.")
     print(f"Checkpoints: {ckpt_path.resolve()}")
     print(f"TensorBoard: tensorboard --logdir {log_path.resolve()}")

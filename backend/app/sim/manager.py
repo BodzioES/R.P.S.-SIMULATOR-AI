@@ -4,7 +4,7 @@ import json
 from ..env.rps_env import RPSEnv
 
 
-def build_snapshot(env, info):
+def build_snapshot(env, info, policy_name=""):
     return {
         "step": env.steps,
         "agents": [
@@ -14,6 +14,7 @@ def build_snapshot(env, info):
         "populations": {t.name: c for t, c in info["populations"].items()},
         "done": env.done,
         "winner": info["winning_type"].name if info["winning_type"] else None,
+        "policy": policy_name,
     }
 
 
@@ -54,7 +55,7 @@ class SimulationManager:
         while self.running:
             actions = self.policy.actions(self.env)
             _, rewards, done, info = self.env.step(actions)
-            await self._broadcast(build_snapshot(self.env, info))
+            await self._broadcast(build_snapshot(self.env, info, self.policy_name))
             if done:
                 await asyncio.sleep(self.win_pause)
                 if self.running:

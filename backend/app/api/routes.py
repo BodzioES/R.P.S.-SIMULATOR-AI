@@ -51,6 +51,10 @@ async def start(mode: str = "random", model: str = "best", board_size: int = 8, 
         except Exception:
             policy = LearnedPolicy(str(model_path))
         manager.policy_name = f"AI ({model})"
+        # sprawdz czy jest name.txt z nazwa treningu
+        name_file = CHECKPOINTS_DIR / model / "name.txt"
+        if name_file.exists():
+            manager.policy_name = f"AI ({name_file.read_text(encoding='utf-8').strip()})"
     else:
         # Random — tez uzyj podanych parametrow
         manager.reconfigure(board_size, agents_per_type)
@@ -80,7 +84,9 @@ def list_models():
     models = []
     for p in sorted(CHECKPOINTS_DIR.iterdir()):
         if p.is_dir() and (p / "model.zip").exists():
-            models.append({"name": p.name, "path": str(p / "model.zip")})
+            name_file = p / "name.txt"
+            display_name = name_file.read_text(encoding="utf-8").strip() if name_file.exists() else p.name
+            models.append({"name": p.name, "display_name": display_name, "path": str(p / "model.zip")})
     best = CHECKPOINTS_DIR / "best" / "model.zip"
     return {
         "models": models,

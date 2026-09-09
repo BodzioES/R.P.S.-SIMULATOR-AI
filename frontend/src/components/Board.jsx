@@ -34,7 +34,7 @@ export default function Board({ snapshot, boardSize }) {
       ctx.arc(cx, cy, radiusPx, 0, Math.PI * 2);
       ctx.fillStyle = info.color + "33";
       ctx.fill();
-      ctx.strokeStyle = info.color + "66";
+      ctx.strokeStyle = info.color + "26";
       ctx.lineWidth = 1;
       ctx.stroke();
       ctx.shadowBlur = 0;

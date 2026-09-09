@@ -24,7 +24,7 @@ export default function Controls({
         </button>
         <select value={model} onChange={(e) => setModel(e.target.value)}>
           {models.map((m) => (
-            <option key={m.name} value={m.name}>{m.name}</option>
+            <option key={m.name} value={m.name}>{m.display_name || m.name}</option>
           ))}
           <option value="best">best</option>
         </select>
