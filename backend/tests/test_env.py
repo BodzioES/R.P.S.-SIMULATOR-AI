@@ -28,11 +28,11 @@ def test_reset_agents_have_float_coords():
 
 def test_move_bounces_off_wall():
     agent = Agent(id=0, type=Type.ROCK, x=0.1, y=0.1)
-    x, y = move_agent(agent, -1.0, -1.0, board_size=10)
+    x, y = move_agent(agent, -1.0, -1.0, board_size=10, speed=1.0)
     assert x > 0.0
     assert y > 0.0
-    assert x < 0.6
-    assert y < 0.6
+    assert x < 1.0
+    assert y < 1.0
 
 
 def test_stay_action_keeps_position():

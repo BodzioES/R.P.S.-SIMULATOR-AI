@@ -55,6 +55,7 @@ def train(
     board_size=64,
     agents_per_type=20,
     episode_length=300,
+    speed=1.0,
     log_dir="runs",
     checkpoint_dir="checkpoints",
     seed=42,
@@ -64,6 +65,7 @@ def train(
         board_size=board_size,
         agents_per_type=agents_per_type,
         episode_length=episode_length,
+        speed=speed,
         seed=seed,
     )
 

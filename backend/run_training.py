@@ -9,10 +9,11 @@ from app.ai.train import train
 
 def main():
     parser = argparse.ArgumentParser(description="RPS Simulator AI - Trening PPO")
-    parser.add_argument("--episodes", type=int, default=500, help="Liczba epizodow treningowych")
-    parser.add_argument("--board-size", type=int, default=8)
-    parser.add_argument("--agents-per-type", type=int, default=5)
-    parser.add_argument("--episode-length", type=int, default=300)
+    parser.add_argument("--episodes", type=int, default=2000, help="Liczba epizodow treningowych")
+    parser.add_argument("--board-size", type=int, default=32)
+    parser.add_argument("--agents-per-type", type=int, default=20)
+    parser.add_argument("--episode-length", type=int, default=500)
+    parser.add_argument("--speed", type=float, default=1.0)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--eval-every", type=int, default=10)
     parser.add_argument("--resume", action="store_true", help="Wznow trening z istniejacego modelu")
@@ -24,6 +25,7 @@ def main():
     print(f"  agenci: {args.agents_per_type} x 3 = {args.agents_per_type * 3}")
     print(f"  epizod: {args.episode_length} krokow")
     print(f"  trening: {args.episodes} epizodow ({total_timesteps} krokow)")
+    print(f"  speed: {args.speed}")
     print(f"  ewaluacja: co {args.eval_every} epizodow")
     print(f"  seed: {args.seed}")
     print(f"  resume: {args.resume}")
@@ -35,6 +37,7 @@ def main():
         board_size=args.board_size,
         agents_per_type=args.agents_per_type,
         episode_length=args.episode_length,
+        speed=args.speed,
         seed=args.seed,
         resume=args.resume,
     )

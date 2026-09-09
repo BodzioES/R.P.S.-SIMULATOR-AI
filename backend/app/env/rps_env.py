@@ -9,10 +9,11 @@ from .reward import compute_rewards
 
 class RPSEnv:
     def __init__(self, board_size=BOARD_SIZE, agents_per_type=AGENTS_PER_TYPE,
-                 episode_length=EPISODE_LENGTH, seed=None):
+                 episode_length=EPISODE_LENGTH, speed=1.0, seed=None):
         self.board_size = board_size
         self.agents_per_type = agents_per_type
         self.episode_length = episode_length
+        self.speed = speed
         self.rng = random.Random(seed)
         self.agents = []
         self.steps = 0
@@ -59,7 +60,7 @@ class RPSEnv:
 
         for agent in self.agents:
             dx, dy = actions[agent.id]
-            agent.x, agent.y = move_agent(agent, dx, dy, self.board_size)
+            agent.x, agent.y = move_agent(agent, dx, dy, self.board_size, self.speed)
 
         resolve_collisions(self.agents)
 

@@ -12,6 +12,7 @@ from ..config import (
     VISION_RADIUS,
 )
 from .entities import Type
+from .grid import euclidean_dist
 from .rps_env import RPSEnv
 
 NUM_TYPES = len(Type)
@@ -25,10 +26,10 @@ class RPSGymEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
 
     def __init__(self, board_size=BOARD_SIZE, agents_per_type=AGENTS_PER_TYPE,
-                 episode_length=EPISODE_LENGTH, seed=None):
+                 episode_length=EPISODE_LENGTH, speed=1.0, seed=None):
         super().__init__()
         self.env = RPSEnv(board_size=board_size, agents_per_type=agents_per_type,
-                          episode_length=episode_length, seed=seed)
+                          episode_length=episode_length, speed=speed, seed=seed)
         self.num_agents = agents_per_type * NUM_TYPES
         self.obs_size = self.num_agents * OBS_PER_AGENT
         self.observation_space = spaces.Box(
@@ -88,6 +89,31 @@ class RPSGymEnv(gym.Env):
                     corner_hits += 1
         shaped -= wall_hits * 0.2
         shaped -= corner_hits * 0.25
+
+        # bonus za grupe — im wiecej sojusznikow w poblizu, tym lepiej
+        for a in self.env.agents:
+            allies_near = 0
+            for b in self.env.agents:
+                if b.type == a.type and b.id != a.id:
+                    if euclidean_dist(a, b) < 3.0:
+                        allies_near += 1
+            shaped += allies_near * 0.3
+
+        # bonus za otoczenie — sojusznicy otaczaja wroga
+        for enemy in self.env.agents:
+            enemies_in_range = 0
+            allies_in_range = 0
+            for a in self.env.agents:
+                if a.id == enemy.id:
+                    continue
+                d = euclidean_dist(a, enemy)
+                if d < 2.0:
+                    if a.type == enemy.type:
+                        enemies_in_range += 1
+                    else:
+                        allies_in_range += 1
+            if allies_in_range > enemies_in_range:
+                shaped += (allies_in_range - enemies_in_range) * 0.5
 
         populations = info.get("populations", {})
         total_pop = sum(populations.values()) or 1

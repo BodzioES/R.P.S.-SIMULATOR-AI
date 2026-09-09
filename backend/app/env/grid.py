@@ -3,7 +3,7 @@ import math
 from .entities import Agent, Type
 from .rules import beats
 
-from ..config import SPEED, COLLISION_DIAMETER, AGENT_RADIUS
+from ..config import COLLISION_DIAMETER, AGENT_RADIUS
 
 
 def create_agents(rng, board_size, agents_per_type):
@@ -19,9 +19,9 @@ def create_agents(rng, board_size, agents_per_type):
     return agents
 
 
-def move_agent(agent, dx, dy, board_size):
-    new_x = agent.x + dx * SPEED
-    new_y = agent.y + dy * SPEED
+def move_agent(agent, dx, dy, board_size, speed=1.0):
+    new_x = agent.x + dx * speed
+    new_y = agent.y + dy * speed
 
     if new_x < 0:
         new_x = -new_x

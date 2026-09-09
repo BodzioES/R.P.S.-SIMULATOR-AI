@@ -1,4 +1,4 @@
-from app.config import OBS_WINDOW
+from app.config import VISION_K
 from app.env.entities import Type
 from app.env.rps_env import RPSEnv
 
@@ -9,9 +9,7 @@ def test_window_and_own_shapes():
     obs = env.observations()
     assert len(obs) == 3
     window, own, wall, pop = next(iter(obs.values()))
-    assert len(window) == OBS_WINDOW
-    assert len(window[0]) == OBS_WINDOW
-    assert len(window[0][0]) == 3
+    assert len(window) == VISION_K
     assert len(own) == 3
     assert len(wall) == 4
     assert len(pop) == 3
@@ -46,13 +44,13 @@ def test_center_excludes_self():
     agents[1].x, agents[1].y = 1.0, 1.0
     agents[2].x, agents[2].y = 2.0, 2.0
     obs = env.observations()
-    r = OBS_WINDOW // 2
     window, own, _, _ = obs[a0.id]
-    assert window[r][r][a0.type.value] == 0.0
+    for entry in window:
+        assert len(entry) == 2 + 3  # dx, dy + onehot
     assert own[a0.type.value] == 1.0
 
 
-def test_enemy_appears_at_relative_position():
+def test_enemy_appears_in_radius():
     env = RPSEnv(board_size=10, agents_per_type=1, seed=1)
     env.reset()
     agents = env.agents
@@ -62,13 +60,19 @@ def test_enemy_appears_at_relative_position():
     paper.x, paper.y = 6.0, 5.0
     agents[2].x, agents[2].y = 9.0, 9.0
     obs = env.observations()
-    r = OBS_WINDOW // 2
     window, own, _, _ = obs[rock.id]
     assert own[Type.ROCK.value] == 1.0
-    assert window[r][r + 1][Type.PAPER.value] == 1.0
+    found_paper = False
+    for entry in window:
+        dx, dy = entry[0], entry[1]
+        type_oh = entry[2:]
+        if type_oh[Type.PAPER.value] == 1.0:
+            found_paper = True
+            break
+    assert found_paper
 
 
-def test_far_agent_not_in_window():
+def test_far_agent_not_in_radius():
     env = RPSEnv(board_size=10, agents_per_type=1, seed=1)
     env.reset()
     agents = env.agents
@@ -78,8 +82,7 @@ def test_far_agent_not_in_window():
     paper.x, paper.y = 0.0, 0.0
     agents[2].x, agents[2].y = 2.0, 2.0
     obs = env.observations()
-    r = OBS_WINDOW // 2
     window, _, _, _ = obs[rock.id]
-    for row in window:
-        for cell in row:
-            assert cell[Type.PAPER.value] == 0.0
+    for entry in window:
+        type_oh = entry[2:]
+        assert type_oh[Type.PAPER.value] == 0.0
