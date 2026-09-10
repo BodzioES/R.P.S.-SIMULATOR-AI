@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
@@ -15,6 +16,14 @@ MODEL_BY_SIZE = {
     16: "rps-1.0",
     32: "best",
 }
+
+
+def _read_training_config(model_dir):
+    config_path = model_dir / "training_config.json"
+    if config_path.exists():
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
 
 
 @router.get("/state")
@@ -38,7 +47,6 @@ async def start(mode: str = "random", model: str = "auto", board_size: int = 8, 
         model = MODEL_BY_SIZE.get(board_size, "best")
 
     if mode == "trained":
-        # EvalCallback zapisuje best_model.zip — obsluz model.zip i best_model.zip
         for fname in ("model.zip", "best_model.zip"):
             cand = CHECKPOINTS_DIR / model / fname
             if cand.exists():
@@ -47,26 +55,33 @@ async def start(mode: str = "random", model: str = "auto", board_size: int = 8, 
         else:
             raise HTTPException(status_code=404, detail=f"Model not found in {CHECKPOINTS_DIR / model}")
 
-        # Rekonfiguruj env do rozmiarow z treningu
-        manager.reconfigure(board_size, agents_per_type, episode_length)
+        # czytaj training_config i rekonfiguruj env
+        cfg = _read_training_config(CHECKPOINTS_DIR / model)
+        manager.reconfigure(
+            board_size=cfg.get("board_size", board_size),
+            agents_per_type=cfg.get("agents_per_type", agents_per_type),
+            episode_length=cfg.get("episode_length", episode_length),
+            vision_mode=cfg.get("vision_mode"),
+            vision_radius=cfg.get("vision_radius"),
+            vision_k=cfg.get("vision_k"),
+            obs_window=cfg.get("obs_window"),
+        )
 
         vecnorm = CHECKPOINTS_DIR / model / "vecnorm_stats.pkl"
         try:
             policy = LearnedPolicy(
                 str(model_path),
-                board_size=board_size,
-                agents_per_type=agents_per_type,
+                board_size=cfg.get("board_size", board_size),
+                agents_per_type=cfg.get("agents_per_type", agents_per_type),
                 vecnorm_path=str(vecnorm) if vecnorm.exists() else None,
             )
         except Exception:
             policy = LearnedPolicy(str(model_path))
         manager.policy_name = f"AI ({model})"
-        # sprawdz czy jest name.txt z nazwa treningu
         name_file = CHECKPOINTS_DIR / model / "name.txt"
         if name_file.exists():
             manager.policy_name = f"AI ({name_file.read_text(encoding='utf-8').strip()})"
     else:
-        # Random — tez uzyj podanych parametrow
         manager.reconfigure(board_size, agents_per_type, episode_length)
         policy = RandomPolicy()
         manager.policy_name = "Random"

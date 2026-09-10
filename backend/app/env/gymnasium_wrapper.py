@@ -16,22 +16,33 @@ from .grid import euclidean_dist
 from .rps_env import RPSEnv
 
 NUM_TYPES = len(Type)
-if VISION_MODE == "radius":
-    OBS_PER_AGENT = VISION_K * (2 + NUM_TYPES) + NUM_TYPES + 4 + 3  # K*(dx,dy+onehot) + own + wall + pop
-else:
-    OBS_PER_AGENT = OBS_WINDOW * OBS_WINDOW * NUM_TYPES + NUM_TYPES + 4 + 3  # +4 wall +3 pop
+
+
+def calc_obs_per_agent(vision_mode=VISION_MODE, vision_k=VISION_K, obs_window=OBS_WINDOW):
+    if vision_mode == "radius":
+        return vision_k * (2 + NUM_TYPES) + NUM_TYPES + 4 + 3
+    return obs_window * obs_window * NUM_TYPES + NUM_TYPES + 4 + 3
 
 
 class RPSGymEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
 
     def __init__(self, board_size=BOARD_SIZE, agents_per_type=AGENTS_PER_TYPE,
-                 episode_length=EPISODE_LENGTH, speed=1.0, seed=None):
+                 episode_length=EPISODE_LENGTH, speed=1.0,
+                 vision_mode=VISION_MODE, vision_radius=VISION_RADIUS,
+                 vision_k=VISION_K, obs_window=OBS_WINDOW,
+                 seed=None):
         super().__init__()
-        self.env = RPSEnv(board_size=board_size, agents_per_type=agents_per_type,
-                          episode_length=episode_length, speed=speed, seed=seed)
+        self.env = RPSEnv(
+            board_size=board_size, agents_per_type=agents_per_type,
+            episode_length=episode_length, speed=speed,
+            vision_mode=vision_mode, vision_radius=vision_radius,
+            vision_k=vision_k, obs_window=obs_window,
+            seed=seed,
+        )
         self.num_agents = agents_per_type * NUM_TYPES
-        self.obs_size = self.num_agents * OBS_PER_AGENT
+        obs_per_agent = calc_obs_per_agent(vision_mode, vision_k, obs_window)
+        self.obs_size = self.num_agents * obs_per_agent
         self.observation_space = spaces.Box(
             low=0.0, high=1.0,
             shape=(self.obs_size,),
@@ -78,7 +89,7 @@ class RPSGymEnv(gym.Env):
         shaped = mean_reward
         shaped += conversions * 5.0
         shaped -= 0.01
-        # wall/corner penalty: zniechęć do chowania się przy ścianach
+        # wall/corner penalty
         wall_hits = 0
         corner_hits = 0
         for a in self.env.agents:
@@ -90,7 +101,7 @@ class RPSGymEnv(gym.Env):
         shaped -= wall_hits * 0.2
         shaped -= corner_hits * 0.25
 
-        # bonus za grupe — im wiecej sojusznikow w poblizu, tym lepiej
+        # bonus za grupe
         for a in self.env.agents:
             allies_near = 0
             for b in self.env.agents:
@@ -99,7 +110,7 @@ class RPSGymEnv(gym.Env):
                         allies_near += 1
             shaped += allies_near * 0.3
 
-        # bonus za otoczenie — sojusznicy otaczaja wroga
+        # bonus za otoczenie
         for enemy in self.env.agents:
             enemies_in_range = 0
             allies_in_range = 0

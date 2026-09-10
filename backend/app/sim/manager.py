@@ -30,9 +30,20 @@ class SimulationManager:
         self.running = False
         self.task = None
 
-    def reconfigure(self, board_size, agents_per_type, episode_length=300):
+    def reconfigure(self, board_size, agents_per_type, episode_length=300,
+                    vision_mode=None, vision_radius=None, vision_k=None, obs_window=None):
         from ..env.rps_env import RPSEnv as _RPSEnv
-        self.env = _RPSEnv(board_size=board_size, agents_per_type=agents_per_type, episode_length=episode_length)
+        kwargs = dict(board_size=board_size, agents_per_type=agents_per_type,
+                      episode_length=episode_length)
+        if vision_mode is not None:
+            kwargs["vision_mode"] = vision_mode
+        if vision_radius is not None:
+            kwargs["vision_radius"] = vision_radius
+        if vision_k is not None:
+            kwargs["vision_k"] = vision_k
+        if obs_window is not None:
+            kwargs["obs_window"] = obs_window
+        self.env = _RPSEnv(**kwargs)
         self.env.reset()
 
     def start(self, policy):

@@ -1,3 +1,4 @@
+import json
 import random
 
 from ..env.entities import Type
@@ -21,6 +22,14 @@ class RandomPolicy:
         return actions
 
 
+def _read_training_config(model_dir):
+    config_path = model_dir / "training_config.json"
+    if config_path.exists():
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
 class LearnedPolicy:
     def __init__(self, model_path, board_size=None, agents_per_type=None, vecnorm_path=None):
         from pathlib import Path
@@ -35,13 +44,24 @@ class LearnedPolicy:
             if alt.exists():
                 model_path = alt
 
+        # czytaj training_config z katalogu modelu
+        cfg = _read_training_config(model_path.parent)
+        vision_mode = cfg.get("vision_mode", "grid")
+        vision_radius = cfg.get("vision_radius", 4.0)
+        vision_k = cfg.get("vision_k", 10)
+        obs_window = cfg.get("obs_window", 9)
+
         self.board_size = board_size
         self.agents_per_type = agents_per_type
-        self.vecnorm_path = Path(vecnorm_path) if vecnorm_path else (model_path.parent.parent / "vecnorm_stats.pkl")
+        self.vecnorm_path = Path(vecnorm_path) if vecnorm_path else (model_path.parent / "vecnorm_stats.pkl")
 
         if self.vecnorm_path.exists() and board_size is not None and agents_per_type is not None:
             def make_env():
-                return RPSGymEnv(board_size=board_size, agents_per_type=agents_per_type)
+                return RPSGymEnv(
+                    board_size=board_size, agents_per_type=agents_per_type,
+                    vision_mode=vision_mode, vision_radius=vision_radius,
+                    vision_k=vision_k, obs_window=obs_window,
+                )
             dummy = DummyVecEnv([make_env])
             self.vec_env = VecNormalize.load(str(self.vecnorm_path), dummy)
             self.vec_env.training = False

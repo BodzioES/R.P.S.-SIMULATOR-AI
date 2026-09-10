@@ -14,6 +14,10 @@ def main():
     parser.add_argument("--agents-per-type", type=int, default=20)
     parser.add_argument("--episode-length", type=int, default=500)
     parser.add_argument("--speed", type=float, default=1.0)
+    parser.add_argument("--vision-mode", type=str, default="radius", choices=["grid", "radius"])
+    parser.add_argument("--vision-radius", type=float, default=7.0)
+    parser.add_argument("--vision-k", type=int, default=10)
+    parser.add_argument("--obs-window", type=int, default=9)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--eval-every", type=int, default=10)
     parser.add_argument("--resume", action="store_true", help="Wznow trening z istniejacego modelu")
@@ -26,6 +30,7 @@ def main():
     print(f"  epizod: {args.episode_length} krokow")
     print(f"  trening: {args.episodes} epizodow ({total_timesteps} krokow)")
     print(f"  speed: {args.speed}")
+    print(f"  vision: {args.vision_mode} (radius={args.vision_radius}, k={args.vision_k})")
     print(f"  ewaluacja: co {args.eval_every} epizodow")
     print(f"  seed: {args.seed}")
     print(f"  resume: {args.resume}")
@@ -38,6 +43,10 @@ def main():
         agents_per_type=args.agents_per_type,
         episode_length=args.episode_length,
         speed=args.speed,
+        vision_mode=args.vision_mode,
+        vision_radius=args.vision_radius,
+        vision_k=args.vision_k,
+        obs_window=args.obs_window,
         seed=args.seed,
         resume=args.resume,
     )

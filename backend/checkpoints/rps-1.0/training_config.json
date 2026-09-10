@@ -1,0 +1,10 @@
+{
+  "board_size": 8,
+  "agents_per_type": 5,
+  "episode_length": 300,
+  "speed": 0.5,
+  "vision_mode": "grid",
+  "vision_radius": 4.0,
+  "vision_k": 10,
+  "obs_window": 9
+}

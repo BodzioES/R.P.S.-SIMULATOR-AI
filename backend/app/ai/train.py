@@ -1,4 +1,5 @@
 from collections import defaultdict
+import json
 from pathlib import Path
 
 import numpy as np
@@ -56,6 +57,10 @@ def train(
     agents_per_type=20,
     episode_length=300,
     speed=1.0,
+    vision_mode="radius",
+    vision_radius=7.0,
+    vision_k=10,
+    obs_window=9,
     log_dir="runs",
     checkpoint_dir="checkpoints",
     seed=42,
@@ -66,6 +71,10 @@ def train(
         agents_per_type=agents_per_type,
         episode_length=episode_length,
         speed=speed,
+        vision_mode=vision_mode,
+        vision_radius=vision_radius,
+        vision_k=vision_k,
+        obs_window=obs_window,
         seed=seed,
     )
 
@@ -144,6 +153,19 @@ def train(
         import shutil
         shutil.copy(str(best_model), str(ckpt_path / "best" / "model.zip"))
     env.save(str(ckpt_path / "vecnorm_stats.pkl"))
+    # zapisz training_config dla inference
+    training_config = {
+        "board_size": board_size,
+        "agents_per_type": agents_per_type,
+        "episode_length": episode_length,
+        "speed": speed,
+        "vision_mode": vision_mode,
+        "vision_radius": vision_radius,
+        "vision_k": vision_k,
+        "obs_window": obs_window,
+    }
+    with open(ckpt_path / "training_config.json", "w", encoding="utf-8") as f:
+        json.dump(training_config, f, indent=2)
     # zapisz nazwe treningu (najnowszy katalog w runs/)
     run_name = "PPO"
     runs_dir = log_path

@@ -1,6 +1,9 @@
 import random
 
-from ..config import AGENTS_PER_TYPE, BOARD_SIZE, EPISODE_LENGTH
+from ..config import (
+    AGENTS_PER_TYPE, BOARD_SIZE, EPISODE_LENGTH,
+    OBS_WINDOW, VISION_K, VISION_MODE, VISION_RADIUS,
+)
 from .entities import Type
 from .grid import create_agents, move_agent, population_counts, resolve_collisions
 from .observations import encode_observation
@@ -9,11 +12,18 @@ from .reward import compute_rewards
 
 class RPSEnv:
     def __init__(self, board_size=BOARD_SIZE, agents_per_type=AGENTS_PER_TYPE,
-                 episode_length=EPISODE_LENGTH, speed=1.0, seed=None):
+                 episode_length=EPISODE_LENGTH, speed=1.0,
+                 vision_mode=VISION_MODE, vision_radius=VISION_RADIUS,
+                 vision_k=VISION_K, obs_window=OBS_WINDOW,
+                 seed=None):
         self.board_size = board_size
         self.agents_per_type = agents_per_type
         self.episode_length = episode_length
         self.speed = speed
+        self.vision_mode = vision_mode
+        self.vision_radius = vision_radius
+        self.vision_k = vision_k
+        self.obs_window = obs_window
         self.rng = random.Random(seed)
         self.agents = []
         self.steps = 0
@@ -47,7 +57,13 @@ class RPSEnv:
     def observations(self):
         pops = self.populations
         return {
-            a.id: encode_observation(a, self.agents, self.board_size, pops)
+            a.id: encode_observation(
+                a, self.agents, self.board_size, pops,
+                vision_mode=self.vision_mode,
+                vision_radius=self.vision_radius,
+                vision_k=self.vision_k,
+                obs_window=self.obs_window,
+            )
             for a in self.agents
         }
 
