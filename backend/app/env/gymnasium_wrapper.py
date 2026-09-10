@@ -87,7 +87,7 @@ class RPSGymEnv(gym.Env):
         conversions = info.get("conversions", 0)
 
         shaped = mean_reward
-        shaped += conversions * 15.0
+        shaped += conversions * 50.0
         shaped -= 0.01
         # wall/corner penalty
         wall_hits = 0
@@ -100,6 +100,26 @@ class RPSGymEnv(gym.Env):
                     corner_hits += 1
         shaped -= wall_hits * 0.2
         shaped -= corner_hits * 0.25
+
+        # bonus za bliskosc wrogow — agenci musza byc bardzo blisko
+        for a in self.env.agents:
+            enemies_near = 0
+            for b in self.env.agents:
+                if b.type != a.type:
+                    if euclidean_dist(a, b) < 2.0:
+                        enemies_near += 1
+            shaped += enemies_near * 1.0
+
+        # kara za daleko od wszystkich wrogow — zachecaj do szukania interakcji
+        for a in self.env.agents:
+            min_enemy_dist = float('inf')
+            for b in self.env.agents:
+                if b.type != a.type:
+                    d = euclidean_dist(a, b)
+                    if d < min_enemy_dist:
+                        min_enemy_dist = d
+            if min_enemy_dist > 8.0:
+                shaped -= 0.5
 
         # bonus za grupe — lekki bodziec do trzymania sie razem
         for a in self.env.agents:
@@ -136,7 +156,7 @@ class RPSGymEnv(gym.Env):
         done_bonus_60 = 15.0 if max_pop >= threshold_60 else 0.0
 
         if done and info.get("winning_type") is not None:
-            shaped += 300.0
+            shaped += 750.0
         elif done:
             shaped -= 20.0
             shaped += done_bonus_60
