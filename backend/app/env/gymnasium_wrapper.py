@@ -87,7 +87,7 @@ class RPSGymEnv(gym.Env):
         conversions = info.get("conversions", 0)
 
         shaped = mean_reward
-        shaped += conversions * 5.0
+        shaped += conversions * 15.0
         shaped -= 0.01
         # wall/corner penalty
         wall_hits = 0
@@ -101,16 +101,16 @@ class RPSGymEnv(gym.Env):
         shaped -= wall_hits * 0.2
         shaped -= corner_hits * 0.25
 
-        # bonus za grupe
+        # bonus za grupe — lekki bodziec do trzymania sie razem
         for a in self.env.agents:
             allies_near = 0
             for b in self.env.agents:
                 if b.type == a.type and b.id != a.id:
                     if euclidean_dist(a, b) < 3.0:
                         allies_near += 1
-            shaped += allies_near * 0.3
+            shaped += allies_near * 0.02
 
-        # bonus za otoczenie
+        # bonus za otoczenie wroga — zachecaj do ataku grupowego
         for enemy in self.env.agents:
             enemies_in_range = 0
             allies_in_range = 0
@@ -124,7 +124,7 @@ class RPSGymEnv(gym.Env):
                     else:
                         allies_in_range += 1
             if allies_in_range > enemies_in_range:
-                shaped += (allies_in_range - enemies_in_range) * 0.5
+                shaped += (allies_in_range - enemies_in_range) * 0.1
 
         populations = info.get("populations", {})
         total_pop = sum(populations.values()) or 1
@@ -136,7 +136,7 @@ class RPSGymEnv(gym.Env):
         done_bonus_60 = 15.0 if max_pop >= threshold_60 else 0.0
 
         if done and info.get("winning_type") is not None:
-            shaped += 200.0
+            shaped += 300.0
         elif done:
             shaped -= 20.0
             shaped += done_bonus_60
