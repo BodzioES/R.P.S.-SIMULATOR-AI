@@ -52,16 +52,19 @@ class SimulationManager:
             self.env.reset()
 
     async def _run(self):
-        while self.running:
-            actions = self.policy.actions(self.env)
-            _, rewards, done, info = self.env.step(actions)
-            await self._broadcast(build_snapshot(self.env, info, self.policy_name))
-            if done:
-                await asyncio.sleep(self.win_pause)
-                if self.running:
-                    self.env.reset()
-                    self.env.done = False
-            await asyncio.sleep(self.tick_interval)
+        try:
+            while self.running:
+                actions = self.policy.actions(self.env)
+                _, rewards, done, info = self.env.step(actions)
+                await self._broadcast(build_snapshot(self.env, info, self.policy_name))
+                if done:
+                    await asyncio.sleep(self.win_pause)
+                    if self.running:
+                        self.env.reset()
+                await asyncio.sleep(self.tick_interval)
+        except Exception as e:
+            print(f"[SimulationManager] _run crashed: {e}")
+            self.running = False
 
     async def _broadcast(self, snapshot):
         if not self.clients:
