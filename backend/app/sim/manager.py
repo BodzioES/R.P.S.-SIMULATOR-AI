@@ -30,9 +30,9 @@ class SimulationManager:
         self.running = False
         self.task = None
 
-    def reconfigure(self, board_size, agents_per_type):
+    def reconfigure(self, board_size, agents_per_type, episode_length=300):
         from ..env.rps_env import RPSEnv as _RPSEnv
-        self.env = _RPSEnv(board_size=board_size, agents_per_type=agents_per_type, episode_length=200)
+        self.env = _RPSEnv(board_size=board_size, agents_per_type=agents_per_type, episode_length=episode_length)
         self.env.reset()
 
     def start(self, policy):

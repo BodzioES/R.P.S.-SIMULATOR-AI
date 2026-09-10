@@ -48,8 +48,7 @@ async def start(mode: str = "random", model: str = "auto", board_size: int = 8, 
             raise HTTPException(status_code=404, detail=f"Model not found in {CHECKPOINTS_DIR / model}")
 
         # Rekonfiguruj env do rozmiarow z treningu
-        manager.reconfigure(board_size, agents_per_type)
-        manager.env.episode_length = episode_length
+        manager.reconfigure(board_size, agents_per_type, episode_length)
 
         vecnorm = CHECKPOINTS_DIR / model / "vecnorm_stats.pkl"
         try:
@@ -68,8 +67,7 @@ async def start(mode: str = "random", model: str = "auto", board_size: int = 8, 
             manager.policy_name = f"AI ({name_file.read_text(encoding='utf-8').strip()})"
     else:
         # Random — tez uzyj podanych parametrow
-        manager.reconfigure(board_size, agents_per_type)
-        manager.env.episode_length = episode_length
+        manager.reconfigure(board_size, agents_per_type, episode_length)
         policy = RandomPolicy()
         manager.policy_name = "Random"
     manager.start(policy)

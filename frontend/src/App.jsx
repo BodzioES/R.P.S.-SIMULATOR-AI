@@ -12,16 +12,17 @@ export default function App() {
   );
 
   const [boardSize, setBoardSize] = useState(8);
+  const [episodeLength, setEpisodeLength] = useState(300);
 
   const call = (path, method = "POST") => {
     return fetch(path, { method });
   };
 
   const startRandom = () =>
-    call(`/api/sim/start?mode=random&board_size=${boardSize}&agents_per_type=5&episode_length=300`);
+    call(`/api/sim/start?mode=random&board_size=${boardSize}&agents_per_type=5&episode_length=${episodeLength}`);
 
   const startTrained = () =>
-    call(`/api/sim/start?mode=trained&board_size=${boardSize}&agents_per_type=5&episode_length=300`);
+    call(`/api/sim/start?mode=trained&board_size=${boardSize}&agents_per_type=5&episode_length=${episodeLength}`);
 
   return (
     <div className="app">
@@ -31,6 +32,8 @@ export default function App() {
         policy={latest?.policy}
         boardSize={boardSize}
         onBoardSizeChange={setBoardSize}
+        episodeLength={episodeLength}
+        onEpisodeLengthChange={setEpisodeLength}
         onStartRandom={startRandom}
         onStartTrained={startTrained}
         onStop={() => call("/api/sim/stop")}
