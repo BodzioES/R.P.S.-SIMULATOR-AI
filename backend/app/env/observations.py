@@ -45,8 +45,43 @@ def _encode_radius(agent, agents, board_size, vision_radius=4.0, vision_k=10):
     return slots
 
 
+def compute_messages(agent, agents, board_size, vision_radius=7.0):
+    """Oblicz sygnaly komunikacji: [opportunity_level, danger_level]"""
+    # Types that this agent can convert (beats)
+    from .rules import beats
+    can_convert = set()
+    vulnerable_to = set()
+    for t in Type:
+        if t != agent.type:
+            if beats(agent.type, t):
+                can_convert.add(t)
+            elif beats(t, agent.type):
+                vulnerable_to.add(t)
+
+    # Count nearby enemies
+    convertibles_near = 0
+    threats_near = 0
+    for other in agents:
+        if other.id == agent.id:
+            continue
+        if other.type == agent.type:
+            continue
+        dx, dy = relative_delta(agent, other, board_size)
+        dist = (dx * dx + dy * dy) ** 0.5
+        if dist <= vision_radius:
+            if other.type in can_convert:
+                convertibles_near += 1
+            elif other.type in vulnerable_to:
+                threats_near += 1
+
+    opportunity = min(convertibles_near / 3.0, 1.0)
+    danger = min(threats_near / 3.0, 1.0)
+    return [opportunity, danger]
+
+
 def encode_observation(agent, agents, board_size, populations=None,
-                       vision_mode="grid", vision_radius=4.0, vision_k=10, obs_window=9):
+                       vision_mode="grid", vision_radius=4.0, vision_k=10, obs_window=9,
+                       messages=None, vision_k_messaging=10):
     own = [0.0] * NUM_TYPES
     own[agent.type.value] = 1.0
     wall = [
@@ -62,6 +97,6 @@ def encode_observation(agent, agents, board_size, populations=None,
         pop = [1 / 3, 1 / 3, 1 / 3]
     if vision_mode == "radius":
         slots = _encode_radius(agent, agents, board_size, vision_radius, vision_k)
-        return slots, own, wall, pop
+        return slots, own, wall, pop, messages
     window = _encode_grid(agent, agents, board_size, obs_window)
-    return window, own, wall, pop
+    return window, own, wall, pop, messages

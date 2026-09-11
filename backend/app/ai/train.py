@@ -122,6 +122,9 @@ def train(
             ent_coef=0.01,
             verbose=1,
             tensorboard_log=str(log_path),
+            policy_kwargs=dict(
+                net_arch=dict(pi=[256, 256, 256], vf=[256, 256, 256])
+            ),
         )
 
     eval_callback = EvalCallback(

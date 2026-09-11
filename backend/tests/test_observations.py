@@ -1,4 +1,4 @@
-from app.config import VISION_K
+from app.config import VISION_K, VISION_K_MESSAGING
 from app.env.entities import Type
 from app.env.rps_env import RPSEnv
 
@@ -8,11 +8,12 @@ def test_window_and_own_shapes():
     env.reset()
     obs = env.observations()
     assert len(obs) == 3
-    window, own, wall, pop = next(iter(obs.values()))
+    window, own, wall, pop, msgs = next(iter(obs.values()))
     assert len(window) == VISION_K
     assert len(own) == 3
     assert len(wall) == 4
     assert len(pop) == 3
+    assert len(msgs) == VISION_K_MESSAGING * 2
 
 
 def test_own_onehot_matches_type():
@@ -20,7 +21,7 @@ def test_own_onehot_matches_type():
     env.reset()
     obs = env.observations()
     for a in env.agents:
-        _, own, _, _ = obs[a.id]
+        _, own, _, _, _ = obs[a.id]
         assert own[a.type.value] == 1.0
         assert sum(own) == 1.0
 
@@ -30,9 +31,9 @@ def test_wall_distances():
     env.reset()
     agents = env.agents
     agents[0].x, agents[0].y = 2.0, 8.0
-    _, _, wall, _ = env.observations()[agents[0].id]
-    assert abs(wall[0] - 0.2) < 0.01  # x/board
-    assert abs(wall[1] - 0.8) < 0.01  # y/board
+    _, _, wall, _, _ = env.observations()[agents[0].id]
+    assert abs(wall[0] - 0.2) < 0.01
+    assert abs(wall[1] - 0.8) < 0.01
 
 
 def test_center_excludes_self():
@@ -44,9 +45,9 @@ def test_center_excludes_self():
     agents[1].x, agents[1].y = 1.0, 1.0
     agents[2].x, agents[2].y = 2.0, 2.0
     obs = env.observations()
-    window, own, _, _ = obs[a0.id]
+    window, own, _, _, _ = obs[a0.id]
     for entry in window:
-        assert len(entry) == 2 + 3  # dx, dy + onehot
+        assert len(entry) == 2 + 3
     assert own[a0.type.value] == 1.0
 
 
@@ -60,11 +61,10 @@ def test_enemy_appears_in_radius():
     paper.x, paper.y = 6.0, 5.0
     agents[2].x, agents[2].y = 9.0, 9.0
     obs = env.observations()
-    window, own, _, _ = obs[rock.id]
+    window, own, _, _, _ = obs[rock.id]
     assert own[Type.ROCK.value] == 1.0
     found_paper = False
     for entry in window:
-        dx, dy = entry[0], entry[1]
         type_oh = entry[2:]
         if type_oh[Type.PAPER.value] == 1.0:
             found_paper = True
@@ -82,7 +82,7 @@ def test_far_agent_not_in_radius():
     paper.x, paper.y = 0.0, 0.0
     agents[2].x, agents[2].y = 2.0, 2.0
     obs = env.observations()
-    window, _, _, _ = obs[rock.id]
+    window, _, _, _, _ = obs[rock.id]
     for entry in window:
         type_oh = entry[2:]
         assert type_oh[Type.PAPER.value] == 0.0

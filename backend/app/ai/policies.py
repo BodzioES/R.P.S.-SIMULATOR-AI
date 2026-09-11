@@ -50,6 +50,7 @@ class LearnedPolicy:
         vision_radius = cfg.get("vision_radius", 4.0)
         vision_k = cfg.get("vision_k", 10)
         obs_window = cfg.get("obs_window", 9)
+        vision_k_messaging = cfg.get("vision_k_messaging", 10)
 
         self.board_size = board_size
         self.agents_per_type = agents_per_type
@@ -61,6 +62,7 @@ class LearnedPolicy:
                     board_size=board_size, agents_per_type=agents_per_type,
                     vision_mode=vision_mode, vision_radius=vision_radius,
                     vision_k=vision_k, obs_window=obs_window,
+                    vision_k_messaging=vision_k_messaging,
                 )
             dummy = DummyVecEnv([make_env])
             self.vec_env = VecNormalize.load(str(self.vecnorm_path), dummy)
@@ -77,11 +79,13 @@ class LearnedPolicy:
         obs_dict = env.observations()
         parts = []
         for i in range(len(env.agents)):
-            window, own, wall, pop = obs_dict[i]
+            window, own, wall, pop, msgs = obs_dict[i]
             parts.append(np.array(window, dtype=np.float32).reshape(-1))
             parts.append(np.array(own, dtype=np.float32))
             parts.append(np.array(wall, dtype=np.float32))
             parts.append(np.array(pop, dtype=np.float32))
+            if msgs is not None:
+                parts.append(np.array(msgs, dtype=np.float32))
         return np.concatenate(parts).astype(np.float32)
 
     def actions(self, env):

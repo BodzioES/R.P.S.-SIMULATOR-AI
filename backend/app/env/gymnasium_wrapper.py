@@ -8,6 +8,7 @@ from ..config import (
     EPISODE_LENGTH,
     OBS_WINDOW,
     VISION_K,
+    VISION_K_MESSAGING,
     VISION_MODE,
     VISION_RADIUS,
 )
@@ -18,10 +19,15 @@ from .rps_env import RPSEnv
 NUM_TYPES = len(Type)
 
 
-def calc_obs_per_agent(vision_mode=VISION_MODE, vision_k=VISION_K, obs_window=OBS_WINDOW):
+def calc_obs_per_agent(vision_mode=VISION_MODE, vision_k=VISION_K, obs_window=OBS_WINDOW,
+                        vision_k_messaging=VISION_K_MESSAGING):
+    base = 0
     if vision_mode == "radius":
-        return vision_k * (2 + NUM_TYPES) + NUM_TYPES + 4 + 3
-    return obs_window * obs_window * NUM_TYPES + NUM_TYPES + 4 + 3
+        base = vision_k * (2 + NUM_TYPES) + NUM_TYPES + 4 + 3
+    else:
+        base = obs_window * obs_window * NUM_TYPES + NUM_TYPES + 4 + 3
+    # messaging: each slot has [opportunity, danger] = 2 values
+    return base + vision_k_messaging * 2
 
 
 class RPSGymEnv(gym.Env):
@@ -31,6 +37,7 @@ class RPSGymEnv(gym.Env):
                  episode_length=EPISODE_LENGTH, speed=1.0,
                  vision_mode=VISION_MODE, vision_radius=VISION_RADIUS,
                  vision_k=VISION_K, obs_window=OBS_WINDOW,
+                 vision_k_messaging=VISION_K_MESSAGING,
                  seed=None):
         super().__init__()
         self.env = RPSEnv(
@@ -38,10 +45,12 @@ class RPSGymEnv(gym.Env):
             episode_length=episode_length, speed=speed,
             vision_mode=vision_mode, vision_radius=vision_radius,
             vision_k=vision_k, obs_window=obs_window,
+            vision_k_messaging=vision_k_messaging,
             seed=seed,
         )
         self.num_agents = agents_per_type * NUM_TYPES
-        obs_per_agent = calc_obs_per_agent(vision_mode, vision_k, obs_window)
+        self.vision_k_messaging = vision_k_messaging
+        obs_per_agent = calc_obs_per_agent(vision_mode, vision_k, obs_window, vision_k_messaging)
         self.obs_size = self.num_agents * obs_per_agent
         self.observation_space = spaces.Box(
             low=0.0, high=1.0,
@@ -58,11 +67,13 @@ class RPSGymEnv(gym.Env):
         obs_dict = self.env.observations()
         parts = []
         for i in range(self.num_agents):
-            window, own, wall, pop = obs_dict[i]
+            window, own, wall, pop, msgs = obs_dict[i]
             parts.append(np.array(window, dtype=np.float32).reshape(-1))
             parts.append(np.array(own, dtype=np.float32))
             parts.append(np.array(wall, dtype=np.float32))
             parts.append(np.array(pop, dtype=np.float32))
+            if msgs is not None:
+                parts.append(np.array(msgs, dtype=np.float32))
         return np.concatenate(parts)
 
     def reset(self, *, seed=None, options=None):
@@ -156,7 +167,7 @@ class RPSGymEnv(gym.Env):
         done_bonus_60 = 15.0 if max_pop >= threshold_60 else 0.0
 
         if done and info.get("winning_type") is not None:
-            shaped += 750.0
+            shaped += 2250.0
         elif done:
             shaped -= 20.0
             shaped += done_bonus_60
