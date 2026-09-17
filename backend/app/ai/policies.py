@@ -55,6 +55,7 @@ class LearnedPolicy:
         self.board_size = board_size
         self.agents_per_type = agents_per_type
         self.vecnorm_path = Path(vecnorm_path) if vecnorm_path else (model_path.parent / "vecnorm_stats.pkl")
+        self.has_messaging = "vision_k_messaging" in cfg
 
         if self.vecnorm_path.exists() and board_size is not None and agents_per_type is not None:
             def make_env():
@@ -84,7 +85,7 @@ class LearnedPolicy:
             parts.append(np.array(own, dtype=np.float32))
             parts.append(np.array(wall, dtype=np.float32))
             parts.append(np.array(pop, dtype=np.float32))
-            if msgs is not None:
+            if msgs is not None and self.has_messaging:
                 parts.append(np.array(msgs, dtype=np.float32))
         return np.concatenate(parts).astype(np.float32)
 
