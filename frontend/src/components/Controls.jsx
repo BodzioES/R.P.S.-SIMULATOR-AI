@@ -1,12 +1,6 @@
-import { useState } from "react";
-
 export default function Controls({
   connected,
   policy,
-  boardSize,
-  onBoardSizeChange,
-  episodeLength,
-  onEpisodeLengthChange,
   onStartRandom,
   onStartTrained,
   onStop,
@@ -21,19 +15,6 @@ export default function Controls({
         <button onClick={() => onStartTrained()} className="btn-ai">
           Start (AI)
         </button>
-        <select value={boardSize} onChange={(e) => onBoardSizeChange(Number(e.target.value))}>
-          <option value={4}>4x4</option>
-          <option value={8}>8x8</option>
-          <option value={16}>16x16</option>
-          <option value={32}>32x32</option>
-          <option value={64}>64x64</option>
-        </select>
-        <select value={episodeLength} onChange={(e) => onEpisodeLengthChange(Number(e.target.value))}>
-          <option value={100}>100 steps</option>
-          <option value={200}>200 steps</option>
-          <option value={300}>300 steps</option>
-          <option value={500}>500 steps</option>
-        </select>
         <button onClick={onStop}>Stop</button>
         <button onClick={onReset}>Reset</button>
       </div>

@@ -119,7 +119,7 @@ class RPSEnv:
         conversions = sum(1 for a in self.agents if prev_types[a.id] != a.type)
 
         self.steps += 1
-        if self.winning_type is not None or self.steps >= self.episode_length:
+        if self.winning_type is not None or (self.episode_length > 0 and self.steps >= self.episode_length):
             self.done = True
 
         info = {

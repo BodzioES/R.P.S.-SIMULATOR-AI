@@ -41,7 +41,7 @@ def get_state():
 
 
 @router.post("/sim/start")
-async def start(mode: str = "random", model: str = "auto", board_size: int = 8, agents_per_type: int = 5, episode_length: int = 200):
+async def start(mode: str = "random", model: str = "auto", board_size: int = 8, agents_per_type: int = 5, episode_length: int = 0):
     # auto-wybor modelu na podstawie rozmiaru planszy
     if model == "auto":
         model = MODEL_BY_SIZE.get(board_size, "best")
