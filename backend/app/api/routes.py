@@ -60,7 +60,7 @@ async def start(mode: str = "random", model: str = "auto", board_size: int = 8, 
         manager.reconfigure(
             board_size=cfg.get("board_size", board_size),
             agents_per_type=cfg.get("agents_per_type", agents_per_type),
-            episode_length=cfg.get("episode_length", episode_length),
+            episode_length=0,  # always infinite for simulation
             vision_mode=cfg.get("vision_mode"),
             vision_radius=cfg.get("vision_radius"),
             vision_k=cfg.get("vision_k"),

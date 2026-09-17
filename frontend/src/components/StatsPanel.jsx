@@ -17,17 +17,8 @@ export default function StatsPanel({ snapshot }) {
     <div className="stats-panel">
       <h2>Stats</h2>
 
-      <div className="progress-section">
-        <div className="progress-label">
-          <span>Step</span>
-          <span>{step} / 300</span>
-        </div>
-        <div className="progress-bar">
-          <div
-            className="progress-fill"
-            style={{ width: `${(step / 300) * 100}%` }}
-          />
-        </div>
+      <div className="step-counter">
+        <span>Step: {step}</span>
       </div>
 
       <div className="faction-counts">
